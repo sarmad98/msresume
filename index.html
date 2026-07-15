@@ -27,6 +27,9 @@
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
 
+  <!-- Chatbot CSS -->
+  <link href="assets/css/chatbot.css" rel="stylesheet">
+
   <!-- =======================================================
   * Template Name: SnapFolio
   * Template URL: https://bootstrapmade.com/snapfolio-bootstrap-portfolio-template/
@@ -164,11 +167,11 @@
 
               <div class="stats-grid">
                 <div class="stat-item">
-                  <div class="stat-number">50+</div>
+                  <div class="stat-number">20+</div>
                   <div class="stat-label">Projects Completed</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-number">3+</div>
+                  <div class="stat-number">4+</div>
                   <div class="stat-label">Years Experience</div>
                 </div>
                 <div class="stat-item">
@@ -181,7 +184,7 @@
                 <div class="detail-row">
                   <div class="detail-item">
                     <span class="detail-label">Specialization</span>
-                    <span class="detail-value">PHP/Laravel Developer</span>
+                    <span class="detail-value">PHP/Laravel/Codeigniter, Node.js, Next.js, RAG System, AI Automation</span>
                   </div>
                   <div class="detail-item">
                     <span class="detail-label">Experience Level</span>
@@ -258,7 +261,7 @@
 
                 <div class="skill-item">
                   <div class="d-flex justify-content-between align-items-center">
-                    <h4>Vue.js</h4>
+                    <h4>Vue.js & Next.js</h4>
                     <span class="skill-percentage">65%</span>
                   </div>
                   <div class="progress">
@@ -276,7 +279,7 @@
               <div class="skills-animation">
                 <div class="skill-item">
                   <div class="d-flex justify-content-between align-items-center">
-                    <h4>Laravel & Codeigniter</h4>
+                    <h4>Laravel & Codeigniter/ Node.js</h4>
                     <span class="skill-percentage">90%</span>
                   </div>
                   <div class="progress">
@@ -481,9 +484,36 @@ modules, e-commerce platforms, and enterprise applications.</p>
                 <h5>2022 - Present</h5>
                 <p class="company"><i class="bi bi-building"></i> ArkCrew</p>
                 <ul>
-                  <li>Everfit Clone - Led customization and refactoring of core backend modules, significantly improving system reliability, scalability, and long-term maintainability.</li>
-                  <li>Everfit Clone - Designed and implemented automated workflows to intelligently assign workout programs to newly onboarded users, eliminating manual intervention and streamlining operations.</li>
-                  <li>Everfit Clone - Engineered custom training modules, interactive commenting systems, advanced scheduling logic, and dynamic dashboard APIs to deliver real-time, data-driven insights.</li>
+                  <li>Everfit Clone - Led customization and refactoring of core backend modules, significantly improving system reliability, scalability, and long-term maintainability.
+                    <ul>
+                        <li>Designed and implemented automated workflows to intelligently assign workout programs to newly onboarded users, eliminating manual intervention and streamlining operations.</li>
+                        <li>Engineered custom training modules, interactive commenting systems, advanced scheduling logic, and dynamic dashboard APIs to deliver real-time, data-driven insights.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    AI-Powered Product Development
+                    <ul>
+                        <li>Designed and developed Zoe Pulse, an AI-powered SaaS platform that generates competitive marketing reports in
+                            minutes (vs. hours manually), integrating multiple LLMs for market data analysis and automated report generation using
+                            Claude Code (Vibe Coding methodology).
+                        </li>
+                        <li>Built a fully custom RAG (Retrieval-Augmented Generation) system in Laravel that enables users to upload PDFs and ask
+                            natural-language questions, implementing Cosine Similarity search on MySQL
+                        </li>
+                    </ul>
+                  </li>
+                  <li>
+                    Perfex CRM Development
+                    <ul>
+                        <li>Created multiple custom CRM modules including attendance, payment automation, scheduling, and reporting</li>
+                        <li>Extended core CRM functionality without breaking update compatibility.</li>
+                    </ul>
+                  </li>
+                  <li>API Integrations</li>
+                  <ul>
+                    <li>Integrated Stripe, PayPal, other payment gateways, communication APIs, and WhatsApp business APIs</li>
+                    <li>Built secure webhook handlers, transaction logs, and automated payment validation workflows.</li>
+                  </ul>
                   <li>Developed automation scripts for repetitive business processes across two projects, reducing manual labor by 60–80%.</li>
                   <li>Developed and deployed multiple custom Perfex CRM modules, including VoIP, appointment booking system, attendance management/payroll, and advanced reporting features.</li>
                 </ul>
@@ -838,6 +868,44 @@ modules, e-commerce platforms, and enterprise applications.</p>
 
   </footer>
 
+  <!-- AI Chatbot -->
+  <button id="chatbot-fab" type="button" aria-label="Open AI Chat">
+    <i class="bi bi-chat-dots-fill fab-icon"></i>
+  </button>
+
+  <div id="chatbot-window" role="dialog" aria-label="AI Resume Chatbot">
+    <!-- Header -->
+    <div class="chatbot-header">
+      <div class="chatbot-avatar">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="chatbot-header-info">
+        <h4>AI Resume Assistant</h4>
+        <span><span class="status-dot"></span> Online &middot; Ask me anything</span>
+      </div>
+      <button class="chatbot-clear-btn" type="button" aria-label="Clear chat" title="Clear chat">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+      <button class="chatbot-close-btn" type="button" aria-label="Close chat" title="Close chat">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="chatbot-messages" aria-live="polite">
+      <!-- Welcome state and messages rendered by JS -->
+    </div>
+
+    <!-- Input Area -->
+    <div class="chatbot-input-area">
+      <textarea rows="1" placeholder="Type your question..." aria-label="Type your question"></textarea>
+      <button class="chatbot-send-btn" type="button" aria-label="Send message">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+  </div>
+  <!-- /AI Chatbot -->
+
   <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
@@ -857,6 +925,9 @@ modules, e-commerce platforms, and enterprise applications.</p>
 
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
+
+  <!-- Chatbot JS -->
+  <script src="assets/js/chatbot.js"></script>
 
 </body>
 
