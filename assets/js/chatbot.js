@@ -26,7 +26,7 @@
   ];
 
   const WELCOME_MESSAGE =
-    "Hi! I'm AI Resume Assistant.\n\nI'm here to help recruiters and hiring managers quickly explore Sarmad's professional background.";
+    "Hi! I'm here to help recruiters and hiring managers quickly explore Sarmad's professional background.";
 
   /* =============================================================
      State
