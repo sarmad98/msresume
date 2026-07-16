@@ -26,7 +26,7 @@
   ];
 
   const WELCOME_MESSAGE =
-    "Hi! I'm here to help recruiters and hiring managers quickly explore Sarmad's professional background.";
+    "\n\nHi! I'm here to help recruiters and hiring managers quickly explore Sarmad's professional background.";
 
   /* =============================================================
      State

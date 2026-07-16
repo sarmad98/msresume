@@ -723,7 +723,7 @@
     max-height: 100%;
     border-radius: 0;
     border: none;
-    z-index: 9999;
+    z-index: 999999;
   }
 
   #chatbot-window.open {
