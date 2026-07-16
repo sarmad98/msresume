@@ -731,7 +731,7 @@
   }
 
   .chatbot-suggestions-grid {
-    flex-wrap: nowrap;
+    display: block;
     overflow-x: auto;
     padding-bottom: 6px;
     -webkit-overflow-scrolling: touch;
