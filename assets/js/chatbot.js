@@ -33,6 +33,11 @@
   ============================================================= */
   let isLoading = false; // Prevents duplicate requests
   let isOpen = false;
+  let autoReadEnabled = true;
+  let currentSpeechUtterance = null;
+  let activePlayBtn = null;
+  let activeStopBtn = null;
+  let voices = [];
 
   /* =============================================================
      DOM References (cached after DOMContentLoaded)
@@ -44,7 +49,9 @@
     textarea,
     sendBtn,
     clearBtn,
-    closeBtn;
+    closeBtn,
+    autoReadCheck,
+    stopAllBtn;
 
   /* =============================================================
      Initialization
@@ -60,6 +67,8 @@
     sendBtn = inputArea.querySelector(".chatbot-send-btn");
     clearBtn = chatWindow.querySelector(".chatbot-clear-btn");
     closeBtn = chatWindow.querySelector(".chatbot-close-btn");
+    autoReadCheck = document.getElementById("chatbot-auto-read");
+    stopAllBtn = document.getElementById("chatbot-stop-all");
 
     // Event listeners
     fabBtn.addEventListener("click", toggleChat);
@@ -69,6 +78,27 @@
 
     textarea.addEventListener("keydown", handleKeyDown);
     textarea.addEventListener("input", autoResizeTextarea);
+
+    // Voice preferences
+    loadVoicePreference();
+
+    if (autoReadCheck) {
+      autoReadCheck.checked = autoReadEnabled;
+      autoReadCheck.addEventListener("change", (e) => {
+        autoReadEnabled = e.target.checked;
+        saveVoicePreference();
+      });
+    }
+
+    if (stopAllBtn) {
+      stopAllBtn.addEventListener("click", stopSpeaking);
+    }
+
+    // Load available voices
+    loadVoices();
+    if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
 
     // Render initial state
     renderEmptyState();
@@ -161,6 +191,9 @@
   function sendMessage(question) {
     if (isLoading) return;
 
+    // Stop speaking before submitting new question
+    stopSpeaking();
+
     // Remove welcome/suggestions if still showing
     clearWelcomeState();
 
@@ -247,12 +280,55 @@
   function appendBotMessage(text, isError = false) {
     const msg = document.createElement("div");
     msg.className = "chatbot-msg bot";
+
+    let voiceControlsHtml = "";
+    if (!isError) {
+      voiceControlsHtml = `
+        <div class="msg-voice-controls">
+          <button class="msg-voice-btn play-btn" title="Read aloud" type="button">
+            <i class="bi bi-volume-up-fill"></i> Play
+          </button>
+          <button class="msg-voice-btn stop-btn" title="Stop speaking" type="button" style="display: none;">
+            <i class="bi bi-stop-fill"></i> Stop
+          </button>
+        </div>
+      `;
+    }
+
     msg.innerHTML = `
       <div class="msg-avatar"><i class="bi bi-robot"></i></div>
-      <div class="msg-bubble${isError ? " error" : ""}">${formatBotText(text)}</div>
+      <div class="msg-bubble-wrapper">
+        <div class="msg-bubble${isError ? " error" : ""}">${formatBotText(text)}</div>
+        ${voiceControlsHtml}
+      </div>
     `;
+
+    if (!isError) {
+      const playBtn = msg.querySelector(".play-btn");
+      const stopBtn = msg.querySelector(".stop-btn");
+      const rawText = stripHtml(formatBotText(text));
+
+      playBtn.addEventListener("click", () => {
+        speakText(rawText, playBtn, stopBtn);
+      });
+
+      stopBtn.addEventListener("click", () => {
+        stopSpeaking();
+      });
+    }
+
     messagesContainer.appendChild(msg);
     scrollToBottom();
+
+    // Auto read if enabled and not error
+    if (!isError && autoReadEnabled) {
+      setTimeout(() => {
+        const playBtn = msg.querySelector(".play-btn");
+        const stopBtn = msg.querySelector(".stop-btn");
+        const rawText = stripHtml(formatBotText(text));
+        speakText(rawText, playBtn, stopBtn);
+      }, 50);
+    }
   }
 
   /* =============================================================
@@ -300,6 +376,7 @@
      Clear Chat (Reset)
   ============================================================= */
   function clearChat() {
+    stopSpeaking();
     hideTyping();
     setLoading(false);
     textarea.value = "";
@@ -347,5 +424,131 @@
     // Bold: **text**
     escaped = escaped.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     return escaped;
+  }
+
+  /* =============================================================
+     AI Voice Utilities (Web Speech API)
+  ============================================================= */
+
+  /** Load available browser voices */
+  function loadVoices() {
+    if (typeof speechSynthesis === "undefined") return;
+    voices = speechSynthesis.getVoices();
+  }
+
+  /** Select the best matching English voice */
+  function getSelectedVoice() {
+    let currentVoices = speechSynthesis.getVoices();
+    if (currentVoices.length > 0) {
+      voices = currentVoices;
+    }
+
+    // English voice matching (prioritize high quality built-in names)
+    const priorityNames = ["google us english", "microsoft zira", "microsoft david", "google uk english female"];
+    for (const name of priorityNames) {
+      const found = voices.find(v => v.name.toLowerCase().includes(name));
+      if (found) return found;
+    }
+
+    // Fallback to any voice with language starting with 'en'
+    const anyEnglish = voices.find(v => v.lang.toLowerCase().startsWith("en"));
+    if (anyEnglish) return anyEnglish;
+
+    return null; // Fallback to browser default
+  }
+
+  /** Speak text aloud, updates playing button state and animation */
+  function speakText(text, playBtn, stopBtn) {
+    // Stop any active speech first
+    stopSpeaking();
+
+    if (typeof speechSynthesis === "undefined") return;
+
+    // Track buttons
+    activePlayBtn = playBtn;
+    activeStopBtn = stopBtn;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.onstart = () => {
+      if (activePlayBtn) {
+        activePlayBtn.classList.add("speaking");
+        activePlayBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Speaking...';
+      }
+      if (activeStopBtn) {
+        activeStopBtn.style.display = "inline-flex";
+      }
+    };
+
+    utterance.onend = () => {
+      resetActiveVoiceButtons();
+    };
+
+    utterance.onerror = (e) => {
+      console.warn("SpeechSynthesis error:", e);
+      resetActiveVoiceButtons();
+    };
+
+    // Get matched voice or default
+    const matchedVoice = getSelectedVoice();
+    if (matchedVoice) {
+      utterance.voice = matchedVoice;
+      utterance.lang = matchedVoice.lang;
+    } else {
+      utterance.lang = "en-US";
+    }
+
+    currentSpeechUtterance = utterance;
+    speechSynthesis.speak(utterance);
+  }
+
+  /** Stop any current speech synthesis output */
+  function stopSpeaking() {
+    if (typeof speechSynthesis !== "undefined") {
+      speechSynthesis.cancel();
+    }
+    resetActiveVoiceButtons();
+  }
+
+  /** Helper to reset the speaker buttons back to default Play state */
+  function resetActiveVoiceButtons() {
+    if (activePlayBtn) {
+      activePlayBtn.classList.remove("speaking");
+      activePlayBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i> Play';
+    }
+    if (activeStopBtn) {
+      activeStopBtn.style.display = "none";
+    }
+    currentSpeechUtterance = null;
+    activePlayBtn = null;
+    activeStopBtn = null;
+  }
+
+  /** Load voice preferences from localStorage */
+  function loadVoicePreference() {
+    try {
+      const savedAuto = localStorage.getItem("chatbot_auto_read");
+      if (savedAuto !== null) {
+        autoReadEnabled = savedAuto === "true";
+      }
+    } catch (e) {
+      console.error("Failed to load voice preferences:", e);
+    }
+  }
+
+  /** Save voice preferences to localStorage */
+  function saveVoicePreference() {
+    try {
+      localStorage.setItem("chatbot_auto_read", autoReadEnabled.toString());
+    } catch (e) {
+      console.error("Failed to save voice preferences:", e);
+    }
+  }
+
+  /** Utility to strip HTML tags for Speech Synthesis input */
+  function stripHtml(html) {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
   }
 })();
